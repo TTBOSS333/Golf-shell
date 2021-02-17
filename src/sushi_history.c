@@ -47,8 +47,10 @@ void sushi_show_history(FILE *out) {
     while (mouse != EOF) 
     { 
         printf("%d", position);
-        fflush(stdout);
+        printf("  ");
+        
         printf ("%c", mouse); 
+        printf("\n");
         mouse = fgetc(out);
         position++; 
     } 
