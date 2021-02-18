@@ -84,11 +84,10 @@ int sushi_read_config(char *fname, int ok_if_missing) {
       return EXIT_FAILURE;
   }
 
-  num=0;
+
   while (!feof(in)){
       char *line = sushi_read_line(in);
-      history[num]=line;
-      num++;
+      sushi_store(line);
   }
 
 //  for(int i=0;i<num;i++){
