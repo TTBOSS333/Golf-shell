@@ -1,60 +1,24 @@
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 #include "sushi.h"
+
 static char *history[SUSHI_HISTORY_LENGTH] = {NULL};
+
 void sushi_store(char *line) {
-  int arr_size = (sizeof(history) / sizeof(history[0]));
-  int rear = 0;
-  int front = 0;
-  
- /* verify is the array is full.
-    if full all elements will be shifted to the right,
-    with the last one being discarded. the new line will 
-    also be place in the front */
+  // Avoid memory leaks
+  if (history[SUSHI_HISTORY_LENGTH - 1])
+    free(history[SUSHI_HISTORY_LENGTH - 1]);
 
-  if(rear == ( arr_size - 1)){
-    for(int i = arr_size -1; i > 0; i--){
-      history[i] = history[i-1];
-    }
-    history[front] = *line;
-  }
-
-  /* verify if the line is not null, in
-    which case it will be added to the array.*/
-    
-  if(*line != NULL){
-    for(int i = rear; i < rear; i++){
-      history[rear] = history[rear-1];
-    }
-  }
+  // Shift the history
+  for (int i = SUSHI_HISTORY_LENGTH - 1; i > 0; i--)
+    history[i] = history[i - 1];
   
-  history[front] = *line;
-  rear++;
+  // Add the most recent line to history
+  history[0] = line;
 }
 
-void sushi_show_history(FILE *out) {
-  char mouse;
-  // open the file
-  out = fopen("history", "r");
-  if (out == NULL) 
-    { 
-        printf("Cannot open file \n"); 
-        exit(0); 
-    }
-
-  // read the content of the file
- 
-    mouse = fgetc(out); 
-    int position = 0;
-    while (mouse != EOF) 
-    { 
-        printf("%d", position);
-        printf("  ");
-        
-        printf ("%c", mouse); 
-        printf("\n");
-        mouse = fgetc(out);
-        position++; 
-    } 
-  
-    fclose(out); 
-    return 0;
+void sushi_show_history() {
+  for (int i = 0; i < SUSHI_HISTORY_LENGTH && history[i]; i++)
+    printf("% 5d  %s\n", i + 1, history[i]); // Right justified to 5 places
 }

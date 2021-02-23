@@ -1,100 +1,60 @@
-  /*
-    pengchao_wang working on it 02/16/2021
-   */
-
-
+#include <string.h>
+#include <ctype.h>
 #include "sushi.h"
 
-static char *history[SUSHI_HISTORY_LENGTH] = {NULL};
-
 char *sushi_read_line(FILE *in) {
-  /*
-    You code goes here.
-   */
-  char * ptr;
-  char ch;
-  int num;
-  int nspace;
+  char buffer[SUSHI_MAX_INPUT + 1];
+  char *result;
+  char *tok;
 
-  ptr = (char*) malloc(SUSHI_MAX_INPUT+1);
-  /*
-   * If any I/O or memory operation fails,
-   * the function shall print an error message
-   * with perror() and return NULL.
-   */
-  if (in==NULL || ptr==NULL){
-      perror("I/O or memory operation fails");
-      return NULL;
-  }
+  if (!fgets(buffer, SUSHI_MAX_INPUT + 1, in))
+    return NULL;
 
-  /*
-   * If the input is longer than SUSHI_MAX_INPUT,
-   * the function shall discard the rest of it
-   * (to the next newline, including the newline
-   * itself) and display the following error message
-   * to stderr: Line too long, truncated.
-   */
-    num=0;
-    nspace=0;
-    while( (ch=fgetc(in)) != EOF ){
-        if(ch==' '){
-            nspace++;
-        }
+  strtok(buffer, "\n"); // Remove the newline, if any
 
-        if(num<SUSHI_MAX_INPUT){
-            if(ch=='\n'){
-                ptr[num]='\0';
-                break;
-            } else{
-                ptr[num]=ch;
-            }
-        } else {
-            ptr[SUSHI_MAX_INPUT]='\0';
-            if(ch=='\n'){
-                fprintf(stderr, "Line too long, truncated.");
-                break;
-            }
-        }
-
-        num++;
+  int is_blank = 1;
+  for (size_t i = 0; i < strlen(buffer); i++)
+    if (!isspace(buffer[i])) {
+      is_blank = 0;
+      break;
     }
 
-  /*
-   * If the line is blank (empty or consists only of
-   * white spaces, as defined by isspace()), it shall
-   * be discarded and the function shall return NULL.
-   */
+  if (is_blank) // Blank line
+    return NULL;
 
-  if(num==0 || (nspace>0 &&nspace+1==num)){
-      return NULL;
+  result = malloc(strlen(buffer) + 1); // Needs a check!
+  strcpy(result, buffer);
+
+  // Line too long?
+  if (strlen(buffer) == SUSHI_MAX_INPUT) {
+    fprintf(stderr, "%s\n", "Line too long, truncated");
+    int c;
+    do
+      c = fgetc(in);
+    while (c != '\n' && c != EOF);
   }
-  return ptr;
+
+  return result;
 }
 
 int sushi_read_config(char *fname, int ok_if_missing) {
-  /*
-    You code goes here.
-   */
-  FILE *in;
-  int num;
-  in = fopen(fname,"r");
 
-  if (in==NULL){
-//      perror("File not exist");
-      return EXIT_FAILURE;
+  FILE *infile;
+
+  if (!(infile = fopen(fname, "r"))) {
+    if (!ok_if_missing) {
+      perror(fname);
+      return 1;		
+    }
+    return 0;
   }
 
+  char *line;
 
-  while (!feof(in)){
-      char *line = sushi_read_line(in);
+  while (!feof(infile))
+    if((line = sushi_read_line(infile))) 
       sushi_store(line);
-  }
 
-//  for(int i=0;i<num;i++){
-//      printf("%s\n", history[i]);
-//  }
-
-
-  fclose(in);
-  return EXIT_SUCCESS;
+  fclose(infile);
+  return 0;
 }
