@@ -52,6 +52,7 @@ char *sushi_read_line(FILE *in) {
             ptr[SUSHI_MAX_INPUT]='\0';
             if(ch=='\n'){
                 fprintf(stderr, "Line too long, truncated.");
+		//DZ Must skip the rest of the line
                 break;
             }
         }
@@ -71,6 +72,7 @@ char *sushi_read_line(FILE *in) {
   return ptr;
 }
 
+//DZ ok_if_missing not used
 int sushi_read_config(char *fname, int ok_if_missing) {
   /*
     You code goes here.
@@ -80,6 +82,7 @@ int sushi_read_config(char *fname, int ok_if_missing) {
   in = fopen(fname,"r");
 
   if (in==NULL){
+    //DZ perror(fname)
 //      perror("File not exist");
       return EXIT_FAILURE;
   }
