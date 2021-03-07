@@ -2,6 +2,7 @@
 #include <ctype.h>
 #include "sushi.h"
 
+// modified by pw
 char *sushi_read_line(FILE *in) {
   char buffer[SUSHI_MAX_INPUT + 1];
   char *result;
