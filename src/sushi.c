@@ -10,6 +10,7 @@ char *sushi_read_line(FILE *in) {
   if (!fgets(buffer, SUSHI_MAX_INPUT + 1, in))
     return NULL;
 
+
   strtok(buffer, "\n"); // Remove the newline, if any
 
   int is_blank = 1;
@@ -21,6 +22,12 @@ char *sushi_read_line(FILE *in) {
 
   if (is_blank) // Blank line
     return NULL;
+=======
+
+while (sushi_exit == 0)
+{
+  char *line;
+
 
   result = malloc(strlen(buffer) + 1); // Needs a check!
   strcpy(result, buffer);
@@ -52,6 +59,7 @@ int sushi_read_config(char *fname, int ok_if_missing) {
   char *line;
   int line_parse;
 
+
   while (!feof(infile))
     if((line = sushi_read_line(infile)))
       line_parse = sushi_parse_command(line);
@@ -63,4 +71,17 @@ int sushi_read_config(char *fname, int ok_if_missing) {
 
   fclose(infile);
   return 0;
+=======
+  if (!(line = sushi_read_line(stdin)))
+    sushi_parse_command(line);
+    return EXIT_FAILURE;
+
+  sushi_store(line);
+}
+
+  
+  sushi_show_history();
+  
+  return EXIT_SUCCESS;
+
 }
