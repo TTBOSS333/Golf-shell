@@ -53,7 +53,8 @@ int sushi_read_config(char *fname, int ok_if_missing) {
   char *line;
 
   while (!feof(infile))
-    if((line = sushi_read_line(infile))) 
+    if((line = sushi_read_line(infile)))
+      // DZ: Must call sushi_parse_command
       sushi_store(line);
 
   fclose(infile);

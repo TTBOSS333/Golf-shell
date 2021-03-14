@@ -1,10 +1,15 @@
 #include <stdio.h>
+#include <string.h> //DZ: Missing prototype for strlen
+#include <stdlib.h> //DZ: Missing prototype for malloc
 #include "sushi_yyparser.tab.h"
 
 // Modify this function
 // modified by Shad
 char *sushi_unquote(char *s) {
-  int s_len = strlen(s); 
+  //DZ: Missing prototype for strlen
+  int s_len = strlen(s);
+  //DZ: Should have modified in place, not make a copy
+  //DZ: Missing prototype for malloc
   char *temp = malloc(s_len + 1);
   if (!temp)
     return NULL;
@@ -29,6 +34,7 @@ char *sushi_unquote(char *s) {
       case '"':
 	temp[j] = '"';
 	break;
+	//DZ: What about \' ?
       default:
 	temp[j] = s[i];
 	break;
