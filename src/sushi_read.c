@@ -2,7 +2,6 @@
 #include <ctype.h>
 #include "sushi.h"
 
-// modified by pw
 char *sushi_read_line(FILE *in) {
   char buffer[SUSHI_MAX_INPUT + 1];
   char *result;
@@ -53,7 +52,7 @@ int sushi_read_config(char *fname, int ok_if_missing) {
   char *line;
 
   while (!feof(infile))
-    if((line = sushi_read_line(infile))) 
+    if((line = sushi_read_line(infile)) && !sushi_parse_command(line))
       sushi_store(line);
 
   fclose(infile);
