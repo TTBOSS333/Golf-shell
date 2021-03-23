@@ -32,22 +32,57 @@ char *sushi_unquote(char *s) {
 // Function skeletons for HW3
 void free_memory(prog_t *exe, prog_t *pipe) {
   // TODO - but not this time
+  printf("this function was called");
 }
 
 int spawn(prog_t *exe, prog_t *pipe, int bgmode) {
+       newProcess = fork();
+
+       if (newProcess == 0)
+       {
+             temp = super_realloc(temp, (args + 1) * sizeof(int));
+
+             if(execvp(exe->args.args[0], args) == -1)
+             {
+                   exit(0);
+             }
+       }
+
+       if (newProcess != 0)
+       {
+             if(free_memory() == NULL)
+             {
+                  return 0; 
+             }
+             else
+                  perror("Error in function free_memory()");
+
+       }
+       
+       
+      
   return 1;
 }
 
 char *super_strdup(const char *s) {
-  return NULL;
+  if(!(strdup(s))){
+        abort();
+  }
+  return strdup(s);
 }
 
 void *super_malloc(size_t size) {  
-  return NULL;
+  if(!(malloc(size))){
+        abort();
+    }
+  return malloc(size);
 }
 
 void *super_realloc(void *ptr, size_t size) {
-  return NULL;
+  if(!(realloc(ptr,size))){
+        abort();
+    }
+  return realloc(ptr, size);
 }
 
 // Do not modify this function
