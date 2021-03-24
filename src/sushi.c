@@ -6,11 +6,13 @@ int sushi_exit = 0;
 
 static void refuse_to_die(int sig)
 {
-  // TODO
+  signal(SIGINT, refuse_to_die);
+  fprintf(stderr, "Type exit to exit the shell");
+
 }
 
 static void prevent_interruption() {
-  // TODO
+  signal(SIGINT, refuse_to_die);
 }
 
 int main() {
