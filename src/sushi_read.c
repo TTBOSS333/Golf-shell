@@ -22,7 +22,7 @@ char *sushi_read_line(FILE *in) {
   if (is_blank) // Blank line
     return NULL;
 
-  result = malloc(strlen(buffer) + 1); // Needs a check!
+  result = super_malloc(strlen(buffer) + 1);
   strcpy(result, buffer);
 
   // Line too long?

@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <sys/wait.h>
 #include "sushi.h"
 #include "sushi_yyparser.tab.h"
 
@@ -32,57 +33,60 @@ char *sushi_unquote(char *s) {
 // Function skeletons for HW3
 void free_memory(prog_t *exe, prog_t *pipe) {
   // TODO - but not this time
-  printf("this function was called");
+  fputs("Temp message: freeing memory\n", stderr);
 }
 
 int spawn(prog_t *exe, prog_t *pipe, int bgmode) {
-       newProcess = fork();
+  int retval = 0;
+  int child = fork();
+  switch (child) {
+  case -1: // We failed
+    perror("fork");
+    free_memory(exe, pipe);
+    retval = 1;
+    break;
+    
+  case 0: // We are the child
+    exe->args.args = super_realloc(exe->args.args, exe->args.size + 1);
+    exe->args.args[exe->args.size] = NULL;
+    execvp(exe->args.args[0], exe->args.args);
 
-       if (newProcess == 0)
-       {
-             temp = super_realloc(temp, (args + 1) * sizeof(int));
+    // If we are here, we failed
+    perror(exe->args.args[0]);
+    exit(EXIT_FAILURE);
+    
+  default: // We are the parent, do nothing so far
+    break;
+  }
+  
+  return retval;
+}
 
-             if(execvp(exe->args.args[0], args) == -1)
-             {
-                   exit(0);
-             }
-       }
+void sushi_assign(char *name, char *value) {
+  // TODO
+}
 
-       if (newProcess != 0)
-       {
-             if(free_memory() == NULL)
-             {
-                  return 0; 
-             }
-             else
-                  perror("Error in function free_memory()");
-
-       }
-       
-       
-      
-  return 1;
+char *sushi_safe_getenv(char *name) {
+  // TODO
+  return "";
 }
 
 char *super_strdup(const char *s) {
-  if(!(strdup(s))){
-        abort();
-  }
-  return strdup(s);
+  char *result = strdup(s);
+  if (!result) abort();
+  return result;
 }
 
-void *super_malloc(size_t size) {  
-  if(!(malloc(size))){
-        abort();
-    }
-  return malloc(size);
+void *super_malloc(size_t size) {
+  void *result = malloc(size);  
+  if (!result) abort();
+  return result;
 }
 
 void *super_realloc(void *ptr, size_t size) {
-  if(!(realloc(ptr,size))){
-        abort();
-    }
-  return realloc(ptr, size);
+  void *result = realloc(ptr, size);  
+  if (!result) abort();
+  return result;
 }
 
 // Do not modify this function

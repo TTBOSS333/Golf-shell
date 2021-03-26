@@ -1,18 +1,21 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <signal.h>
 #include "sushi.h"
 
 int sushi_exit = 0;
 
 static void refuse_to_die(int sig)
 {
-  signal(SIGINT, refuse_to_die);
-  fprintf(stderr, "Type exit to exit the shell");
-
+  fputs("Type exit to exit the shell\n", stderr);
 }
 
 static void prevent_interruption() {
-  signal(SIGINT, refuse_to_die);
+  struct sigaction sa = {.sa_handler = refuse_to_die, .sa_flags = 0};
+  if (sigaction(SIGINT, &sa, NULL)) {
+    // Cannot be fixed, anyway.
+    perror("sigaction");
+  }
 }
 
 int main() {
@@ -26,10 +29,7 @@ int main() {
   while (!sushi_exit) {
     printf("%s", SUSHI_DEFAULT_PROMPT);
 
-    if (!(line = sushi_read_line(stdin)))
-      return EXIT_FAILURE;
-    
-    if (!sushi_parse_command(line))
+    if ((line = sushi_read_line(stdin)) && !sushi_parse_command(line))
       sushi_store(line);
   }
   
