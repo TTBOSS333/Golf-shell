@@ -11,6 +11,7 @@ static void refuse_to_die(int sig)
 
 }
 
+// DZ: signal is obsolete. You should have used sigaction.
 static void prevent_interruption() {
   signal(SIGINT, refuse_to_die);
 }

@@ -36,11 +36,13 @@ void free_memory(prog_t *exe, prog_t *pipe) {
 }
 
 int spawn(prog_t *exe, prog_t *pipe, int bgmode) {
-       newProcess = fork();
+  // DZ: Undeclared variable
+       pid_t newProcess = fork();
 
        if (newProcess == 0)
        {
-             temp = super_realloc(temp, (args + 1) * sizeof(int));
+	 // DZ: Undeclared AND uninitalized variable! Cannot fix this for you
+            temp = super_realloc(temp, (args + 1) * sizeof(int));
 
              if(execvp(exe->args.args[0], args) == -1)
              {
@@ -50,6 +52,7 @@ int spawn(prog_t *exe, prog_t *pipe, int bgmode) {
 
        if (newProcess != 0)
        {
+	 //DZ: This function is void but takes two parameters.
              if(free_memory() == NULL)
              {
                   return 0; 
@@ -59,29 +62,35 @@ int spawn(prog_t *exe, prog_t *pipe, int bgmode) {
 
        }
        
-       
+       // DZ: What if fork() failed?
       
   return 1;
 }
 
 char *super_strdup(const char *s) {
+  // DZ: strdup called twice.
   if(!(strdup(s))){
         abort();
   }
+  // DZ: How do you know this call did not fail?
   return strdup(s);
 }
 
 void *super_malloc(size_t size) {  
+  // DZ: malloc called twice.
   if(!(malloc(size))){
         abort();
     }
+  // DZ: How do you know this call did not fail?
   return malloc(size);
 }
 
 void *super_realloc(void *ptr, size_t size) {
+  // DZ: realloc called twice.
   if(!(realloc(ptr,size))){
         abort();
     }
+  // DZ: How do you know this call did not fail?
   return realloc(ptr, size);
 }
 
