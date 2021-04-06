@@ -2,7 +2,7 @@
 #include <string.h>
 #include <sys/wait.h>
 #include "sushi.h"
-#include "sushi_yyparser.tab.h"
+//#include "sushi_yyparser.tab.h"
 
 static char lookup_table[128] = {'\0'};
 
@@ -31,7 +31,7 @@ char *sushi_unquote(char *s) {
 }
 
 // Function skeletons for HW3
-oid free_memory(prog_t *exe, prog_t *pipe) {
+void free_memory(prog_t *exe, prog_t *pipe) {
   // TODO - but not this time
   fputs("Temp message: freeing memory\n", stderr);
 
@@ -104,11 +104,23 @@ int spawn(prog_t *exe, prog_t *pipe, int bgmode) {
 }
 
 void sushi_assign(char *name, char *value) {
-  // TODO
+  
+  setenv(name,value,1);
+  free(name);
+  free(value);
+
+  return;
 }
 
 char *sushi_safe_getenv(char *name) {
-  // TODO
+ 
+  char env = getenv(name);
+
+  if (env != NULL)
+  {
+    return env;
+  }
+
   return "";
 }
 
@@ -138,4 +150,3 @@ void yyerror(const char* s) {
 void __not_implemented__() {  
   fputs("This operation is not implemented yet\n", stderr);
 }
-
