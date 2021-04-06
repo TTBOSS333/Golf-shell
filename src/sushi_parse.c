@@ -31,14 +31,43 @@ char *sushi_unquote(char *s) {
 }
 
 // Function skeletons for HW3
-void free_memory(prog_t *exe, prog_t *pipe) {
+oid free_memory(prog_t *exe, prog_t *pipe) {
   // TODO - but not this time
   fputs("Temp message: freeing memory\n", stderr);
+
+  int i;
+  size_t arr_size = sizeof(exe->args.args)/sizeof(exe->args.args[0]);
+  for (i = 0; i < arr_size; i++)
+  {
+    if (exe->args.args[i] == NULL)
+    {
+      free(exe->args.args[i]);
+    }
+    
+  }
+
+  free(exe->args.args);
+
+  if (!NULL)
+  {
+    free(exe->redirection);
+  }
+  
+  free(exe);
+
+  if (pipe !NULL)
+  {
+    free(pipe);
+  }
+  
+  
 }
 
 int spawn(prog_t *exe, prog_t *pipe, int bgmode) {
   int retval = 0;
   int child = fork();
+  int child_return;
+  char buffer[10];
   switch (child) {
   case -1: // We failed
     perror("fork");
@@ -56,6 +85,18 @@ int spawn(prog_t *exe, prog_t *pipe, int bgmode) {
     exit(EXIT_FAILURE);
     
   default: // We are the parent, do nothing so far
+    switch (bgmode)
+    {
+    case 0:
+      free_memory(exe, pipe);
+      waitpid(child,&child_return,0);
+      sprintf(buffer, "%d", child_return);
+      setenv("_",buffer,1);
+      break;
+    
+    case 1:
+      break;
+    }
     break;
   }
   
