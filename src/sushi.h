@@ -37,11 +37,11 @@ typedef struct {
 typedef struct prog {
   arglist_t args; // Arguments, including the program name
   redirection_t redirection; // Optional redirections
-  struct prog *next; // The next program in the pipeline, if any; NULL otherwise
+  struct prog *prev; // The prev program in the pipeline, if any; NULL otherwise
 } prog_t;
 
 // Start a new program
-int spawn(prog_t *exe, prog_t *pipe, int bgmode);
+int sushi_spawn(prog_t *exe, int bgmode);
 
 // Report unimplemented functions
 void __not_implemented__();

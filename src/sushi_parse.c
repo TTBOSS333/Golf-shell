@@ -2,7 +2,7 @@
 #include <string.h>
 #include <sys/wait.h>
 #include "sushi.h"
-//#include "sushi_yyparser.tab.h"
+#include "sushi_yyparser.tab.h"
 
 static char lookup_table[128] = {'\0'};
 
@@ -31,97 +31,105 @@ char *sushi_unquote(char *s) {
 }
 
 // Function skeletons for HW3
-void free_memory(prog_t *exe, prog_t *pipe) {
-  // TODO - but not this time
-  fputs("Temp message: freeing memory\n", stderr);
-
-  int i;
-  size_t arr_size = sizeof(exe->args.args)/sizeof(exe->args.args[0]);
-  for (i = 0; i < arr_size; i++)
-  {
-    if (exe->args.args[i] == NULL)
-    {
-      free(exe->args.args[i]);
-    }
-    
-  }
-
-  free(exe->args.args);
-
-  if (!NULL)
-  {
-    free(exe->redirection);
-  }
-  
+void free_memory(prog_t *exe) {
+  for (int i = 0; i < exe->args.size; i++)
+    if (exe->args.args[i]) free(exe->args.args[i]);
+  if (exe->redirection.in) free(exe->redirection.in);
+  if (exe->redirection.out1) free(exe->redirection.out1);
+  if (exe->redirection.out2) free(exe->redirection.out2);
   free(exe);
-
-  if (pipe !NULL)
-  {
-    free(pipe);
-  }
-  
-  
-}
-
-int spawn(prog_t *exe, prog_t *pipe, int bgmode) {
-  int retval = 0;
-  int child = fork();
-  int child_return;
-  char buffer[10];
-  switch (child) {
-  case -1: // We failed
-    perror("fork");
-    free_memory(exe, pipe);
-    retval = 1;
-    break;
-    
-  case 0: // We are the child
-    exe->args.args = super_realloc(exe->args.args, exe->args.size + 1);
-    exe->args.args[exe->args.size] = NULL;
-    execvp(exe->args.args[0], exe->args.args);
-
-    // If we are here, we failed
-    perror(exe->args.args[0]);
-    exit(EXIT_FAILURE);
-    
-  default: // We are the parent, do nothing so far
-    switch (bgmode)
-    {
-    case 0:
-      free_memory(exe, pipe);
-      waitpid(child,&child_return,0);
-      sprintf(buffer, "%d", child_return);
-      setenv("_",buffer,1);
-      break;
-    
-    case 1:
-      break;
-    }
-    break;
-  }
-  
-  return retval;
 }
 
 void sushi_assign(char *name, char *value) {
-  
-  setenv(name,value,1);
+  setenv(name, value, 1);
   free(name);
   free(value);
-
-  return;
 }
 
 char *sushi_safe_getenv(char *name) {
- 
-  char env = getenv(name);
+  char *var = getenv(name);
+  return var ? var : "";
+}
 
-  if (env != NULL)
-  {
-    return env;
+/*------------------------------------------------------------------
+ * You can use these "convenience" functions as building blocks for
+ * HW5 instead of your code, if you want. You may change them, too.
+ *------------------------------------------------------------------*/
+
+// Find the number of programs on the command line
+static size_t cmd_length(prog_t *exe) {
+  int count = 0;
+  while(exe->prev) {
+    exe = exe->prev;
+    count++;
   }
+  return count;
+}
 
-  return "";
+// Wait for the process pid to terminate; once it does, set the
+// environmental variable "_" to the exit code of the process.
+static int wait_and_setenv(pid_t pid) {
+  int status;
+  if (-1 == waitpid(pid, &status, 0)) {
+    perror("waitpid");
+    status = 1; // Something bad happened
+  }
+  char retval[16]; // Just to be safe
+  sprintf(retval, "%d", status);
+  if(-1 == setenv("_", retval, 1)) {
+    perror("_");
+    return 1;
+  } else
+    return 0;
+}
+
+// Execute the program defined in "exe"
+static void start(prog_t *exe) {
+  arglist_t args = exe->args;
+  args.args = super_realloc(args.args, sizeof(char*) * (args.size + 1));
+  args.args[args.size] = (char*)NULL;
+  execvp(args.args[0], args.args);
+  perror(args.args[0]);
+}
+
+// "Rename" file descriptor "old" to "new," if necessary. After the
+// execution of this function a program that "believes" that it uses
+// the "old" descriptor (e.g., stdout #1 for output) will be actually
+// using the "new" descriprot (e.g., an outgoinf pipe).  This
+// functions terminates the process of error and should not be used in
+// the parent, only in a child.
+static void dup_me (int new, int old) {
+  if (new != old && -1 == dup2(new, old)) {
+    perror("dup2");
+    exit(1);
+  }
+}
+
+// Former spawn().
+int sushi_spawn(prog_t *exe, int bgmode) {
+  int retval = 0;
+
+  int child = fork();
+  switch (child) {
+  case -1: // We failed
+    perror(exe->args.args[0]);
+    return 1;
+    
+  case 0: // We are the child
+    start(exe);
+    // If we are here, we failed
+    exit(EXIT_FAILURE);
+    
+  default: // We are the parent, do nothing so far
+    if (bgmode == 0) {
+      if(wait_and_setenv(child))
+	retval = 1;
+      break;
+    }
+  }
+  
+  free_memory(exe);
+  return retval;
 }
 
 char *super_strdup(const char *s) {
@@ -150,3 +158,4 @@ void yyerror(const char* s) {
 void __not_implemented__() {  
   fputs("This operation is not implemented yet\n", stderr);
 }
+
