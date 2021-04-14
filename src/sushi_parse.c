@@ -35,8 +35,13 @@ void free_memory(prog_t *exe, prog_t *pipe) {
   // TODO - but not this time
   fputs("Temp message: freeing memory\n", stderr);
 
+  //DZ: Must be unsigned
   int i;
+  // DZ: arr_size is exe->args.size, no need to calculate
+  // DZ: And thsi is wrong, anyway
   size_t arr_size = sizeof(exe->args.args)/sizeof(exe->args.args[0]);
+  // DZ: This whole block is wrong
+  /*
   for (i = 0; i < arr_size; i++)
   {
     if (exe->args.args[i] == NULL)
@@ -45,9 +50,10 @@ void free_memory(prog_t *exe, prog_t *pipe) {
     }
     
   }
-
+  */
+// DZ: This is ok
   free(exe->args.args);
-
+  /*
   if (!NULL)
   {
     free(exe->redirection);
@@ -59,7 +65,7 @@ void free_memory(prog_t *exe, prog_t *pipe) {
   {
     free(pipe);
   }
-  
+  */
   
 }
 
@@ -89,12 +95,14 @@ int spawn(prog_t *exe, prog_t *pipe, int bgmode) {
     {
     case 0:
       free_memory(exe, pipe);
+      // DZ: check return value?
       waitpid(child,&child_return,0);
       sprintf(buffer, "%d", child_return);
       setenv("_",buffer,1);
       break;
     
     case 1:
+      // DZ: must free memory, anyway
       break;
     }
     break;
@@ -105,7 +113,7 @@ int spawn(prog_t *exe, prog_t *pipe, int bgmode) {
 
 void sushi_assign(char *name, char *value) {
   
-  setenv(name,value,1);
+  setenv(name,value,1);  
   free(name);
   free(value);
 
@@ -113,7 +121,8 @@ void sushi_assign(char *name, char *value) {
 }
 
 char *sushi_safe_getenv(char *name) {
- 
+
+  // DZ: char *env
   char env = getenv(name);
 
   if (env != NULL)
