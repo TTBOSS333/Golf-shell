@@ -32,20 +32,20 @@ char *sushi_unquote(char *s) {
 
 // Function skeletons for HW3
 void free_memory(prog_t *exe) {
-  if(exe == NULL) return;
   for (int i = 0; i < exe->args.size; i++)
-    if (exe->args.args[i] != NULL) free_memory(exe->args.args[i]);
-    if (exe->redirection.in != NULL) free_memory(exe->redirection.in);
-    if (exe->redirection.out1 != NULL) free_memory(exe->redirection.out1);
-    if (exe->redirection.out2 != NULL) free_memory(exe->redirection.out2);
-    free_memory(exe->prev);
-    free(exe);
+    if (exe->args.args[i]) free(exe->args.args[i]);
+  free(exe->args.args);
+  if (exe->redirection.in) free(exe->redirection.in);
+  if (exe->redirection.out1) free(exe->redirection.out1);
+  if (exe->redirection.out2) free(exe->redirection.out2);
+  if(exe->prev) free_memory(exe->prev);
+  free(exe);
 }
 
 void sushi_assign(char *name, char *value) {
   setenv(name, value, 1);
-  free(name);
-  free(value);
+  //  free(name);
+  //  free(value);
 }
 
 char *sushi_safe_getenv(char *name) {
@@ -100,6 +100,7 @@ static void start(prog_t *exe) {
 // using the "new" descriprot (e.g., an outgoinf pipe).  This
 // functions terminates the process of error and should not be used in
 // the parent, only in a child.
+
 static void dup_me (int new, int old) {
   if (new != old && -1 == dup2(new, old)) {
     perror("dup2");
@@ -107,56 +108,52 @@ static void dup_me (int new, int old) {
   }
 }
 
+
 // Former spawn().
 int sushi_spawn(prog_t *exe, int bgmode) {
-int size = cmd_length(exe);
-pid_t PID[size + 1];
-int* pipes[size-1][2]; // Used to store two ends of first pipe
-  
-  for(i = 0; i < size +1 ; i++; exe = exe->prev){
-    int retval = 0;
+  int pipe_length = 0, max_pipe = cmd_length(exe);
+  pid_t pid[max_pipe];
 
-  
-    
-  
+  int old_stdout = STDOUT_FILENO;
 
-    if (pipe(pipes[i])==-1)
-      {
-        fprintf(stderr, "Pipe Failed" );
-          return 1;
-      }
-      
-    int child = fork();
-      switch (child) {
-      case -1: // We failed
-        perror(exe->args.args[i]);
-        return 1;
-    
-      case 0: // We are the child
-        PID[child++];
-        dup_me(pipes[i][0], STDIN_FILENO);
-        close(pipes[i][1], STDIN_FILENO);
-        start(exe);
-        
-        // If we are here, we failed
-        exit(EXIT_FAILURE);
-    
-      default: // We are the parent, do nothing so far
-        
-      }
+  // For each program in the pipeline
+  for(prog_t *prog = exe; prog; prog = prog->prev) {
+    int pipefd[2] = {STDIN_FILENO, old_stdout};
+    if (prog->prev && -1 == pipe(pipefd)) {
+      perror("pipe");
+      return 1;
     }
+  
+    switch(pid[pipe_length] = fork()) {
+    case -1: // Error
+      perror(prog->args.args[0]);
+      return 1;
+    case 0: // Child
+      dup_me(pipefd[0], STDIN_FILENO);
+      dup_me(old_stdout, STDOUT_FILENO);
+      if(pipefd[1] != STDOUT_FILENO)
+	close(pipefd[1]);
+      start(prog);
+      exit(EXIT_FAILURE);
+    default: // Parent
+      if(pipefd[0] != STDIN_FILENO) close(pipefd[0]);
+      if(old_stdout != STDOUT_FILENO) close(old_stdout);
+      old_stdout = pipefd[1];
+    }
+    pipe_length++;
   }
-  for(i = 0; i < size; i++){
-    if (bgmode == 0) {
-          if(wait_and_setenv(child))
-	          retval = 1;
-          break;
+
+  int status = 0;
+  if (bgmode == 0) {
+    for (int i = 0; i < pipe_length; i++)
+      if(wait_and_setenv(pid[i]))
+	status = 1;
   }
-  
-  
-  
+
+  if(old_stdout != STDOUT_FILENO) close(old_stdout);
   free_memory(exe);
-  return retval;
+  
+  return status;
 }
 
 char *super_strdup(const char *s) {
@@ -184,4 +181,13 @@ void yyerror(const char* s) {
 
 void __not_implemented__() {  
   fputs("This operation is not implemented yet\n", stderr);
+}
+
+/*
+ * New skeleton functions
+ */
+void sushi_display_wd() {
+}
+
+void sushi_change_wd(char *new_wd) {
 }

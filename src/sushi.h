@@ -53,4 +53,6 @@ void *super_malloc(size_t size);
 void *super_realloc(void *ptr, size_t size);
 void sushi_assign(char *name, char *value);
 char *sushi_safe_getenv(char *name);
+void sushi_display_wd();
+void sushi_change_wd(char *new_wd);
 #endif
