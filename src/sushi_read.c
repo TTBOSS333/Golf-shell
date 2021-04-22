@@ -44,12 +44,12 @@ int sushi_read_config(char *fname, int ok_if_missing) {
   if (!(infile = fopen(fname, "r"))) {
     if (!ok_if_missing) {
       perror(fname);
-      return 1;		
+      exit(1);		
     }
-    return 0;
+    
   }
-
-  char *line;
+  else{
+    char *line;
 
   while (!feof(infile))
     if((line = sushi_read_line(infile)) && !sushi_parse_command(line))
@@ -57,4 +57,7 @@ int sushi_read_config(char *fname, int ok_if_missing) {
 
   fclose(infile);
   return 0;
+  }
+
+  
 }

@@ -18,7 +18,7 @@ static void prevent_interruption() {
   }
 }
 
-int main() {
+int main(int argc, char * argv[0]) {
   prevent_interruption();
   lookup_table_setup();
   if (sushi_read_config("sushi.conf", 1))
