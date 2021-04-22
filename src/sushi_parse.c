@@ -32,12 +32,14 @@ char *sushi_unquote(char *s) {
 
 // Function skeletons for HW3
 void free_memory(prog_t *exe) {
+  if(exe == NULL) return;
   for (int i = 0; i < exe->args.size; i++)
-    if (exe->args.args[i]) free(exe->args.args[i]);
-  if (exe->redirection.in) free(exe->redirection.in);
-  if (exe->redirection.out1) free(exe->redirection.out1);
-  if (exe->redirection.out2) free(exe->redirection.out2);
-  free(exe);
+    if (exe->args.args[i] != NULL) free_memory(exe->args.args[i]);
+    if (exe->redirection.in != NULL) free_memory(exe->redirection.in);
+    if (exe->redirection.out1 != NULL) free_memory(exe->redirection.out1);
+    if (exe->redirection.out2 != NULL) free_memory(exe->redirection.out2);
+    free_memory(exe->prev);
+    free(exe);
 }
 
 void sushi_assign(char *name, char *value) {
@@ -107,26 +109,51 @@ static void dup_me (int new, int old) {
 
 // Former spawn().
 int sushi_spawn(prog_t *exe, int bgmode) {
-  int retval = 0;
+int size = cmd_length(exe);
+pid_t PID[size + 1];
+int* pipes[size-1][2]; // Used to store two ends of first pipe
+  
+  for(i = 0; i < size +1 ; i++; exe = exe->prev){
+    int retval = 0;
 
-  int child = fork();
-  switch (child) {
-  case -1: // We failed
-    perror(exe->args.args[0]);
-    return 1;
+  
     
-  case 0: // We are the child
-    start(exe);
-    // If we are here, we failed
-    exit(EXIT_FAILURE);
+  
+
+    if (pipe(pipes[i])==-1)
+      {
+        fprintf(stderr, "Pipe Failed" );
+          return 1;
+      }
+      
+    int child = fork();
+      switch (child) {
+      case -1: // We failed
+        perror(exe->args.args[i]);
+        return 1;
     
-  default: // We are the parent, do nothing so far
-    if (bgmode == 0) {
-      if(wait_and_setenv(child))
-	retval = 1;
-      break;
+      case 0: // We are the child
+        PID[child++];
+        dup_me(pipes[i][0], STDIN_FILENO);
+        close(pipes[i][1], STDIN_FILENO);
+        start(exe);
+        
+        // If we are here, we failed
+        exit(EXIT_FAILURE);
+    
+      default: // We are the parent, do nothing so far
+        
+      }
     }
   }
+  for(i = 0; i < size; i++){
+    if (bgmode == 0) {
+          if(wait_and_setenv(child))
+	          retval = 1;
+          break;
+  }
+  
+  
   
   free_memory(exe);
   return retval;
@@ -158,4 +185,3 @@ void yyerror(const char* s) {
 void __not_implemented__() {  
   fputs("This operation is not implemented yet\n", stderr);
 }
-
