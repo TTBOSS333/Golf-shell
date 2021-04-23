@@ -44,6 +44,7 @@ int sushi_read_config(char *fname, int ok_if_missing) {
   if (!(infile = fopen(fname, "r"))) {
     if (!ok_if_missing) {
       perror(fname);
+      // DZ: Not exit, but return
       exit(1);		
     }
     
@@ -59,5 +60,6 @@ int sushi_read_config(char *fname, int ok_if_missing) {
   return 0;
   }
 
-  
+  // DZ: Must return something!
+  return 1;
 }

@@ -34,10 +34,11 @@ char *sushi_unquote(char *s) {
 void free_memory(prog_t *exe) {
   if(exe == NULL) return;
   for (int i = 0; i < exe->args.size; i++)
-    if (exe->args.args[i] != NULL) free_memory(exe->args.args[i]);
-    if (exe->redirection.in != NULL) free_memory(exe->redirection.in);
-    if (exe->redirection.out1 != NULL) free_memory(exe->redirection.out1);
-    if (exe->redirection.out2 != NULL) free_memory(exe->redirection.out2);
+    // DZ: all these lines call free(), not free(memory()!
+    if (exe->args.args[i] != NULL) free/*_memory*/(exe->args.args[i]);
+    if (exe->redirection.in != NULL) free/*_memory*/(exe->redirection.in);
+    if (exe->redirection.out1 != NULL) free/*_memory*/(exe->redirection.out1);
+    if (exe->redirection.out2 != NULL) free/*_memory*/(exe->redirection.out2);
     free_memory(exe->prev);
     free(exe);
 }
@@ -112,8 +113,10 @@ int sushi_spawn(prog_t *exe, int bgmode) {
 int size = cmd_length(exe);
 pid_t PID[size + 1];
 int* pipes[size-1][2]; // Used to store two ends of first pipe
-  
-  for(i = 0; i < size +1 ; i++; exe = exe->prev){
+
+// DZ: "i" undeclared, code cannot be compiled
+// DZ: als, syntzx error in the for loop
+  for(int i = 0; i < size +1 ; i++; exe = exe->prev){
     int retval = 0;
 
   
