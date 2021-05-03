@@ -115,6 +115,7 @@ int sushi_spawn(prog_t *exe, int bgmode) {
   pid_t pid[max_pipe];
 
   int old_stdout = STDOUT_FILENO;
+  
 
   // For each program in the pipeline
   for(prog_t *prog = exe; prog; prog = prog->prev) {
@@ -125,10 +126,29 @@ int sushi_spawn(prog_t *exe, int bgmode) {
     }
   
     switch(pid[pipe_length] = fork()) {
+
     case -1: // Error
       perror(prog->args.args[0]);
       return 1;
     case 0: // Child
+    if (exe->redirection.in != NULL)
+    {
+        int fd0 = open(input, O_RDONLY);
+        dup_me(fd0, STDIN_FILENO);
+        
+    }
+    if (exe->redirection.out1 != NULL)
+    {
+        int fd1 = open(output , O_WRONLY) ;
+        dup_me(fd1, STDOUT_FILENO);
+        
+    }
+    if (exe->redirection.out2 != NULL)
+    {
+        int fd2 = open(output , O_APPEND) ;
+        dup_me(fd2, STDOUT_FILENO);
+        //close(fd1);
+    }
       dup_me(pipefd[0], STDIN_FILENO);
       dup_me(old_stdout, STDOUT_FILENO);
       if(pipefd[1] != STDOUT_FILENO)
