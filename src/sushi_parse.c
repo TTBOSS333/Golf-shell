@@ -207,7 +207,20 @@ void __not_implemented__() {
  * New skeleton functions
  */
 void sushi_display_wd() {
+  
+  char cwd[PATH_MAX +1];
+  if (getcwd(cwd, sizeof(cwd)) != NULL){
+    puts(cwd);
+  }
+  else{
+    perror("perror(getcwd() error");
+  }
 }
 
 void sushi_change_wd(char *new_wd) {
+  
+  // trying to change the cwd to new_wd
+   if (chdir(new_wd) != 0) 
+    perror(new_wd);
+  free(new_wd);
 }
