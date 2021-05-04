@@ -59,5 +59,6 @@ int sushi_read_config(char *fname, int ok_if_missing) {
   return 0;
   }
 
-  
+  // DZ: Must return something
+  return 0;
 }

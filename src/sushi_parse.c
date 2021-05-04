@@ -1,6 +1,11 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/wait.h>
+// DZ: for open()
+       #include <sys/types.h>
+       #include <sys/stat.h>
+       #include <fcntl.h>
+       #include <limits.h>
 #include "sushi.h"
 #include "sushi_yyparser.tab.h"
 
@@ -133,19 +138,26 @@ int sushi_spawn(prog_t *exe, int bgmode) {
     case 0: // Child
     if (exe->redirection.in != NULL)
     {
-        int fd0 = open(input, O_RDONLY);
+      // DZ: open() must be declared
+      // DZ: input undeclared
+        int fd0 = open(exe->redirection.in/*input*/, O_RDONLY);
+	// DZ: Did it open?
         dup_me(fd0, STDIN_FILENO);
         
     }
     if (exe->redirection.out1 != NULL)
     {
-        int fd1 = open(output , O_WRONLY) ;
+     // DZ: output undeclared
+      int fd1 = open(exe->redirection.out1/*output*/ , O_WRONLY) ;
+	// DZ: Did it open?
         dup_me(fd1, STDOUT_FILENO);
         
     }
     if (exe->redirection.out2 != NULL)
     {
-        int fd2 = open(output , O_APPEND) ;
+     // DZ: output undeclared
+      int fd2 = open(exe->redirection.out2/*output*/ , O_APPEND) ;
+	// DZ: Did it open?
         dup_me(fd2, STDOUT_FILENO);
         //close(fd1);
     }
@@ -207,12 +219,14 @@ void __not_implemented__() {
  * New skeleton functions
  */
 void sushi_display_wd() {
-  
+
+  // DZ: PATH_MAX undeclared
   char cwd[PATH_MAX +1];
   if (getcwd(cwd, sizeof(cwd)) != NULL){
     puts(cwd);
   }
   else{
+    // DZ: ????
     perror("perror(getcwd() error");
   }
 }
